@@ -7,6 +7,12 @@
         "license_key": "68783", 
         "name": "hasan", 
         "active": true 
+      },
+      { 
+        "device_id": "49288243a62a6211", 
+        "license_key": "421058", 
+        "name": "rumi", 
+        "active": true 
       }
     ]
   },
