@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>App Control Tower</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0A0D12;
+    --panel: #12161D;
+    --panel-2: #171C24;
+    --line: #232A35;
+    --text: #E7ECF2;
+    --muted: #8C97A6;
+    --amber: #F5A524;
+    --amber-dim: #6B4E17;
+    --green: #3DDC84;
+    --red: #FF5C5C;
+    --font-ui: 'Hind Siliguri', 'Space Grotesk', sans-serif;
+    --font-display: 'Space Grotesk', 'Hind Siliguri', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 500px at 20% -10%, rgba(245,165,36,0.06), transparent),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--font-ui);
+    min-height:100vh;
+    padding:28px 16px 120px;
+  }
+  .wrap{max-width:920px; margin:0 auto;}
+
+  /* ===== Header / status tower ===== */
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:28px; gap:16px; flex-wrap:wrap;
+  }
+  .brand{display:flex; align-items:center; gap:12px;}
+  .tower{
+    width:38px; height:38px; border-radius:10px;
+    background:var(--panel); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+  }
+  .tower .beam{
+    width:8px; height:8px; border-radius:50%;
+    background:var(--muted); box-shadow:0 0 0 0 rgba(245,165,36,0.6);
+    transition:.3s;
+  }
+  .tower.live .beam{
+    background:var(--amber);
+    animation:pulse 1.8s infinite;
+  }
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(245,165,36,.55);}
+    70%{box-shadow:0 0 0 10px rgba(245,165,36,0);}
+    100%{box-shadow:0 0 0 0 rgba(245,165,36,0);}
+  }
+  h1{font-family:var(--font-display); font-size:20px; margin:0; letter-spacing:.2px;}
+  .sub{color:var(--muted); font-size:12.5px; margin-top:2px;}
+  .status-chip{
+    font-family:var(--font-mono); font-size:12px; padding:6px 12px;
+    border-radius:999px; border:1px solid var(--line); color:var(--muted);
+    background:var(--panel);
+  }
+  .status-chip.ok{color:var(--green); border-color:rgba(61,220,132,.3);}
+  .status-chip.err{color:var(--red); border-color:rgba(255,92,92,.3);}
+
+  /* ===== Cards ===== */
+  .card{
+    background:var(--panel); border:1px solid var(--line);
+    border-radius:14px; padding:20px; margin-bottom:18px;
+  }
+  .card h2{
+    font-family:var(--font-display); font-size:15px; margin:0 0 4px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .card .desc{color:var(--muted); font-size:12.5px; margin:0 0 16px;}
+  .row{display:flex; gap:12px; flex-wrap:wrap;}
+  .field{flex:1; min-width:160px; display:flex; flex-direction:column; gap:6px; margin-bottom:12px;}
+  .field label{font-size:12px; color:var(--muted);}
+  input[type=text], input[type=password], input[type=number], select{
+    background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+    padding:10px 12px; border-radius:8px; font-family:var(--font-mono); font-size:13px;
+    outline:none; width:100%;
+  }
+  input:focus, select:focus{border-color:var(--amber);}
+  ::placeholder{color:#54606f;}
+
+  button{
+    font-family:var(--font-ui); font-weight:600; font-size:13.5px;
+    border-radius:8px; border:1px solid var(--line); cursor:pointer;
+    padding:10px 16px; background:var(--panel-2); color:var(--text);
+    transition:.15s;
+  }
+  button:hover{border-color:#3a4453;}
+  button.primary{background:var(--amber); color:#1a1204; border-color:var(--amber);}
+  button.primary:hover{filter:brightness(1.08);}
+  button.ghost{background:transparent;}
+  button.danger{color:var(--red);}
+  button:disabled{opacity:.45; cursor:not-allowed;}
+
+  /* toggle switch */
+  .toggle-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+  .toggle-row .label-block .t{font-weight:600; font-size:13.5px;}
+  .toggle-row .label-block .d{color:var(--muted); font-size:12px; margin-top:2px;}
+  .switch{position:relative; width:44px; height:24px; flex-shrink:0;}
+  .switch input{opacity:0; width:0; height:0;}
+  .slider{
+    position:absolute; inset:0; background:#2A3140; border-radius:999px; cursor:pointer; transition:.2s;
+  }
+  .slider:before{
+    content:""; position:absolute; width:18px; height:18px; left:3px; top:3px;
+    background:#cfd6e0; border-radius:50%; transition:.2s;
+  }
+  .switch input:checked + .slider{background:var(--amber-dim);}
+  .switch input:checked + .slider:before{transform:translateX(20px); background:var(--amber);}
+
+  /* interval group */
+  .interval-group{display:flex; gap:8px;}
+  .interval-group input{flex:1;}
+  .interval-group select{flex:1;}
+
+  /* ===== Users table ===== */
+  table{width:100%; border-collapse:collapse; margin-top:6px;}
+  thead th{
+    text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.06em;
+    color:var(--muted); font-weight:600; padding:0 8px 8px; border-bottom:1px solid var(--line);
+  }
+  tbody td{padding:8px; border-bottom:1px solid var(--line); vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody input{font-size:12.5px; padding:8px 10px;}
+  .row-active{display:flex; justify-content:center;}
+  .del-btn{
+    background:transparent; border:none; color:var(--muted); font-size:16px; padding:4px 8px;
+  }
+  .del-btn:hover{color:var(--red);}
+  .add-user-btn{margin-top:12px; width:100%; border-style:dashed;}
+  .empty-note{color:var(--muted); font-size:12.5px; text-align:center; padding:18px 0;}
+
+  /* ===== Footer save bar ===== */
+  .savebar{
+    position:fixed; left:0; right:0; bottom:0;
+    background:rgba(10,13,18,.9); backdrop-filter:blur(8px);
+    border-top:1px solid var(--line);
+    padding:14px 16px; display:flex; justify-content:center; gap:12px; align-items:center;
+    z-index:20;
+  }
+  .savebar .msg{font-size:12.5px; color:var(--muted); font-family:var(--font-mono);}
+  .savebar .msg.ok{color:var(--green);}
+  .savebar .msg.err{color:var(--red);}
+
+  .locked{opacity:.4; pointer-events:none; filter:grayscale(.3);}
+  .hint{font-size:11.5px; color:#5b6675; margin-top:8px; line-height:1.5;}
+  .hint b{color:#8b95a5;}
+  code{background:var(--panel-2); padding:1px 6px; border-radius:4px; font-family:var(--font-mono); font-size:12px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="tower" id="towerIcon"><div class="beam"></div></div>
+      <div>
+        <h1>App Control Tower</h1>
+        <div class="sub">Access &amp; Redirect — controlled from GitHub</div>
+      </div>
+    </div>
+    <div class="status-chip" id="connStatus">সংযুক্ত না</div>
+  </header>
+
+  <!-- GitHub Connection -->
+  <div class="card">
+    <h2>🔌 GitHub সংযোগ</h2>
+    <p class="desc">যে repo তে config.json রাখবেন, তার তথ্য দিন। Token শুধু এই ব্রাউজার সেশনে থাকে, save হয় না।</p>
+    <div class="row">
+      <div class="field" style="flex:2;">
+        <label>Personal Access Token (repo scope / fine-grained: Contents R&amp;W)</label>
+        <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+      </div>
+      <div class="field">
+        <label>Owner (username/org)</label>
+        <input type="text" id="ghOwner" placeholder="your-github-username">
+      </div>
+      <div class="field">
+        <label>Repo name</label>
+        <input type="text" id="ghRepo" placeholder="app-config">
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>File path</label>
+        <input type="text" id="ghPath" value="access-config.json">
+      </div>
+      <div class="field">
+        <label>Branch</label>
+        <input type="text" id="ghBranch" value="main">
+      </div>
+      <div class="field" style="justify-content:flex-end; flex-direction:row; gap:8px;">
+        <button class="primary" id="loadBtn" style="width:100%; align-self:flex-end;">Load Config</button>
+      </div>
+    </div>
+    <div class="hint">প্রথমবার হলে repo তে খালি ফাইল <code>{"access_control":{"enabled":true,"users":[]},"redirect":{"enabled":false,"url":"","interval_seconds":300}}</code> বানিয়ে commit করে রাখুন — তারপর Load চাপুন।</div>
+  </div>
+
+  <div id="mainPanels" class="locked">
+
+    <!-- Redirect control -->
+    <div class="card">
+      <h2>🔁 Redirect Control</h2>
+      <p class="desc">অ্যাপ নির্দিষ্ট সময় পরপর কোন ওয়েবসাইটে redirect হবে সেটা এখান থেকে নিয়ন্ত্রণ করুন।</p>
+      <div class="toggle-row">
+        <div class="label-block">
+          <div class="t">Redirect চালু রাখুন</div>
+          <div class="d">বন্ধ করলে অ্যাপ কোনো redirect করবে না</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="redirectEnabled"><span class="slider"></span></label>
+      </div>
+      <div class="row">
+        <div class="field" style="flex:2;">
+          <label>Redirect URL</label>
+          <input type="text" id="redirectUrl" placeholder="https://example.com">
+        </div>
+        <div class="field">
+          <label>কতক্ষণ পর পর</label>
+          <div class="interval-group">
+            <input type="number" id="intervalValue" min="1" value="5">
+            <select id="intervalUnit">
+              <option value="60">মিনিট</option>
+              <option value="1">সেকেন্ড</option>
+              <option value="3600">ঘণ্টা</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Access control -->
+    <div class="card">
+      <h2>🔐 Access Control</h2>
+      <p class="desc">শুধু নিচের তালিকার Device ID + License Key মিললেই অ্যাপ ব্যবহার করতে পারবে।</p>
+      <div class="toggle-row">
+        <div class="label-block">
+          <div class="t">Access Control চালু রাখুন</div>
+          <div class="d">বন্ধ করলে সবাই অ্যাপ ব্যবহার করতে পারবে (whitelist ignore হবে)</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="accessEnabled"><span class="slider"></span></label>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:26%;">Device ID</th>
+            <th style="width:26%;">License Key</th>
+            <th style="width:26%;">নাম / নোট</th>
+            <th style="width:12%; text-align:center;">Active</th>
+            <th style="width:10%;"></th>
+          </tr>
+        </thead>
+        <tbody id="userRows"></tbody>
+      </table>
+      <div id="emptyNote" class="empty-note" style="display:none;">এখনো কোনো user যোগ করা হয়নি</div>
+      <button class="add-user-btn" id="addUserBtn">+ নতুন User যোগ করুন</button>
+      <div class="hint">Device ID অ্যাপ থেকে user কে পাঠাতে হবে (প্রথম লঞ্চে অ্যাপ এটা স্ক্রিনে দেখাবে)। License Key আপনি নিজে বানিয়ে user কে দিবেন।</div>
+    </div>
+
+  </div>
+
+  <div class="savebar">
+    <span class="msg" id="saveMsg">Config লোড করুন প্রথমে</span>
+    <button class="primary" id="saveBtn" disabled>Save Changes</button>
+  </div>
+
+</div>
+
+<script>
+let state = { sha: null, config: null, loaded: false };
+
+function ghHeaders(){
+  return {
+    "Authorization": "Bearer " + document.getElementById('ghToken').value.trim(),
+    "Accept": "application/vnd.github+json"
+  };
+}
+function ghApiUrl(){
+  const owner = document.getElementById('ghOwner').value.trim();
+  const repo = document.getElementById('ghRepo').value.trim();
+  const path = document.getElementById('ghPath').value.trim();
+  return `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+}
+function b64EncodeUnicode(str){
+  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (m,p)=>String.fromCharCode('0x'+p)));
+}
+function b64DecodeUnicode(str){
+  return decodeURIComponent(atob(str).split('').map(c=>'%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+}
+function setStatus(ok, text){
+  const chip = document.getElementById('connStatus');
+  const tower = document.getElementById('towerIcon');
+  chip.textContent = text;
+  chip.className = 'status-chip ' + (ok===null? '' : (ok? 'ok':'err'));
+  tower.className = 'tower' + (ok? ' live':'');
+}
+function setSaveMsg(text, kind){
+  const el = document.getElementById('saveMsg');
+  el.textContent = text;
+  el.className = 'msg' + (kind? ' '+kind : '');
+}
+
+function secondsToParts(sec){
+  if(sec % 3600 === 0 && sec >= 3600) return {value: sec/3600, unit:"3600"};
+  if(sec % 60 === 0) return {value: sec/60, unit:"60"};
+  return {value: sec, unit:"1"};
+}
+
+function renderConfig(){
+  const c = state.config;
+  document.getElementById('redirectEnabled').checked = !!c.redirect.enabled;
+  document.getElementById('redirectUrl').value = c.redirect.url || '';
+  const parts = secondsToParts(c.redirect.interval_seconds || 300);
+  document.getElementById('intervalValue').value = parts.value;
+  document.getElementById('intervalUnit').value = parts.unit;
+
+  document.getElementById('accessEnabled').checked = !!c.access_control.enabled;
+  renderUsers();
+}
+
+function renderUsers(){
+  const tbody = document.getElementById('userRows');
+  const users = state.config.access_control.users || [];
+  tbody.innerHTML = '';
+  document.getElementById('emptyNote').style.display = users.length ? 'none' : 'block';
+  users.forEach((u, i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="text" data-i="${i}" data-f="device_id" value="${escapeAttr(u.device_id||'')}" placeholder="Device ID"></td>
+      <td><input type="text" data-i="${i}" data-f="license_key" value="${escapeAttr(u.license_key||'')}" placeholder="License Key"></td>
+      <td><input type="text" data-i="${i}" data-f="name" value="${escapeAttr(u.name||'')}" placeholder="যেমন: Karim"></td>
+      <td class="row-active"><label class="switch"><input type="checkbox" data-i="${i}" data-f="active" ${u.active? 'checked':''}><span class="slider"></span></label></td>
+      <td><button class="del-btn" data-del="${i}" title="Delete">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('input[data-f]').forEach(inp=>{
+    inp.addEventListener('input', onUserFieldChange);
+    inp.addEventListener('change', onUserFieldChange);
+  });
+  tbody.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.config.access_control.users.splice(parseInt(btn.dataset.del),1);
+      renderUsers();
+    });
+  });
+}
+function onUserFieldChange(e){
+  const i = parseInt(e.target.dataset.i);
+  const f = e.target.dataset.f;
+  const val = f === 'active' ? e.target.checked : e.target.value;
+  state.config.access_control.users[i][f] = val;
+}
+function escapeAttr(s){
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+}
+
+document.getElementById('addUserBtn').addEventListener('click', ()=>{
+  state.config.access_control.users.push({device_id:'', license_key:'', name:'', active:true});
+  renderUsers();
+});
+
+function collectFormIntoConfig(){
+  const c = state.config;
+  c.redirect.enabled = document.getElementById('redirectEnabled').checked;
+  c.redirect.url = document.getElementById('redirectUrl').value.trim();
+  const val = parseInt(document.getElementById('intervalValue').value) || 1;
+  const unit = parseInt(document.getElementById('intervalUnit').value);
+  c.redirect.interval_seconds = val * unit;
+  c.access_control.enabled = document.getElementById('accessEnabled').checked;
+  // users array already kept in sync live
+}
+
+document.getElementById('loadBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('loadBtn');
+  btn.disabled = true; btn.textContent = 'Loading...';
+  setStatus(null, 'লোড হচ্ছে...');
+  try{
+    const res = await fetch(ghApiUrl() + `?ref=${encodeURIComponent(document.getElementById('ghBranch').value.trim())}`, { headers: ghHeaders() });
+    if(!res.ok){
+      const errBody = await res.json().catch(()=>({}));
+      throw new Error(errBody.message || ('HTTP '+res.status));
+    }
+    const data = await res.json();
+    state.sha = data.sha;
+    const jsonStr = b64DecodeUnicode(data.content.replace(/\n/g,''));
+    let parsed;
+    try{ parsed = JSON.parse(jsonStr); } catch(e){ throw new Error('config.json ভ্যালিড JSON না'); }
+    // normalize shape defensively
+    parsed.access_control = parsed.access_control || {enabled:true, users:[]};
+    parsed.access_control.users = parsed.access_control.users || [];
+    parsed.redirect = parsed.redirect || {enabled:false, url:'', interval_seconds:300};
+    state.config = parsed;
+    state.loaded = true;
+    renderConfig();
+    document.getElementById('mainPanels').classList.remove('locked');
+    document.getElementById('saveBtn').disabled = false;
+    setStatus(true, 'সংযুক্ত ✓');
+    setSaveMsg('Config লোড হয়েছে। পরিবর্তন করে Save চাপুন।');
+  }catch(err){
+    setStatus(false, 'সংযোগ ব্যর্থ');
+    setSaveMsg('লোড এরর: ' + err.message, 'err');
+  }finally{
+    btn.disabled = false; btn.textContent = 'Load Config';
+  }
+});
+
+document.getElementById('saveBtn').addEventListener('click', async ()=>{
+  if(!state.loaded) return;
+  collectFormIntoConfig();
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  setSaveMsg('Save হচ্ছে...');
+  try{
+    const body = {
+      message: 'Update app config via control panel',
+      content: b64EncodeUnicode(JSON.stringify(state.config, null, 2)),
+      sha: state.sha,
+      branch: document.getElementById('ghBranch').value.trim()
+    };
+    const res = await fetch(ghApiUrl(), {
+      method:'PUT',
+      headers: {...ghHeaders(), 'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    if(!res.ok){
+      const errBody = await res.json().catch(()=>({}));
+      throw new Error(errBody.message || ('HTTP '+res.status));
+    }
+    const data = await res.json();
+    state.sha = data.content.sha;
+    setSaveMsg('✓ Save হয়েছে — ' + new Date().toLocaleTimeString('bn-BD'), 'ok');
+  }catch(err){
+    setSaveMsg('Save এরর: ' + err.message, 'err');
+  }finally{
+    btn.disabled = false; btn.textContent = 'Save Changes';
+  }
+});
+</script>
+</body>
+</html>
