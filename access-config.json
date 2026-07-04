@@ -3,9 +3,9 @@
     "enabled": true,
     "users": [
       { 
-        "device_id": "আপনার_ডিভাইস_আইডি", 
-        "license_key": "আপনার_লাইসেন্স_কী", 
-        "name": "ইউজারের নাম", 
+        "device_id": "fcb3fbfc27e06434", 
+        "license_key": "68783", 
+        "name": "hasan", 
         "active": true 
       }
     ]
