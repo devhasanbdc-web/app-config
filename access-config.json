@@ -12,7 +12,7 @@
   },
   "redirect": {
     "enabled": false,
-    "url": "",
+    "url": "https://www.google.com/",
     "interval_seconds": 300
   }
 }
