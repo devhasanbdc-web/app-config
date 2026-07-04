@@ -1,1 +1,18 @@
-{"access_control":{"enabled":true,"users":[]},"redirect":{"enabled":false,"url":"","interval_seconds":300}}
+{
+  "access_control": {
+    "enabled": true,
+    "users": [
+      { 
+        "device_id": "আপনার_ডিভাইস_আইডি", 
+        "license_key": "আপনার_লাইসেন্স_কী", 
+        "name": "ইউজারের নাম", 
+        "active": true 
+      }
+    ]
+  },
+  "redirect": {
+    "enabled": false,
+    "url": "",
+    "interval_seconds": 300
+  }
+}
