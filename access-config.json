@@ -2,22 +2,22 @@
   "access_control": {
     "enabled": true,
     "users": [
-      { 
-        "device_id": "fcb3fbfc27e06434", 
-        "license_key": "68783", 
-        "name": "hasan", 
-        "active": true 
+      {
+        "device_id": "fcb3fbfc27e06434",
+        "license_key": "201517",
+        "name": "hasan",
+        "active": true
       },
-      { 
-        "device_id": "49288243a62a6211", 
-        "license_key": "421058", 
-        "name": "rumi", 
-        "active": true 
+      {
+        "device_id": "49288243a62a6211",
+        "license_key": "421058",
+        "name": "rumi",
+        "active": true
       }
     ]
   },
   "redirect": {
-    "enabled": false,
+    "enabled": true,
     "url": "https://www.google.com/",
     "interval_seconds": 300
   }
