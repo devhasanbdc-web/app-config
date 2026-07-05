@@ -19,6 +19,6 @@
   "redirect": {
     "enabled": true,
     "url": "https://www.google.com/",
-    "interval_seconds": 300
+    "interval_seconds": 60
   }
 }
