@@ -19,6 +19,6 @@
   "redirect": {
     "enabled": true,
     "url": "https://omg10.com/4/11263648",
-    "interval_seconds": 60
+    "interval_seconds": 300
   }
 }
